@@ -1,0 +1,43 @@
+name: build-zeroclaw-qq
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 120
+    steps:
+      - name: Checkout upstream
+        uses: actions/checkout@v4
+        with:
+          repository: zeroclaw-labs/zeroclaw
+          ref: v0.9.0
+          submodules: false
+
+      - name: Install Rust 1.98
+        uses: dtolnay/rust-toolchain@1.98
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+
+      - name: Build with channel-qq
+        run: |
+          cargo build --release --locked -p zeroclaw \
+            --no-default-features --features \
+          acp-bridge,agent-runtime,channel-acp-server,channel-discord,channel-email,channel-filesystem,channel-git,channel-lark,channel-matrix,channel-telegram,channel-webhook,channel-qq,gateway,observability-prometheus,plugins-wasm-cranelift,schema-export,tool-claude-code,tool-claude-code-runner,tool-codex-cli,tool-composio,tool-gemini-cli,tool-google-workspace,tool-jira,tool-linkedin,tool-microsoft365,tool-notion,tool-opencode-cli,tool-project-intel,tools-external,whatsapp-web
+
+      - name: Report compiler channels
+        run: |
+          ./target/release/zeroclaw --version
+          ./target/release/zeroclaw channel --help | head -5
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: zeroclaw-aarch64-qq
+          path: target/release/zeroclaw
+          if-no-files-found: error
+          retention-days: 7
