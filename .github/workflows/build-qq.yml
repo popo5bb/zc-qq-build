@@ -6,7 +6,7 @@ on:
       features:
         description: "cargo features (comma separated)"
         required: false
-        default: "agent-runtime,gateway,channel-qq,schema-export"
+        default: "agent-runtime,gateway,schema-export,channel-qq,channel-telegram,channel-discord,channel-email,channel-webhook,channel-filesystem,tool-microsoft365,tool-google-workspace"
 
 jobs:
   build:
