@@ -2,11 +2,16 @@ name: build-zeroclaw-qq
 
 on:
   workflow_dispatch:
+    inputs:
+      features:
+        description: "cargo features (comma separated)"
+        required: false
+        default: "agent-runtime,gateway,channel-qq,schema-export"
 
 jobs:
   build:
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 120
+    timeout-minutes: 20
     steps:
       - name: Checkout upstream
         uses: actions/checkout@v4
@@ -21,13 +26,17 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
         with:
+          cache-on-failure: true
           workspaces: ". -> target"
 
       - name: Build with channel-qq
+        env:
+          FEATURES: ${{ inputs.features }}
         run: |
-          cargo build --release --locked -p zeroclaw \
-            --no-default-features --features \
-          acp-bridge,agent-runtime,channel-acp-server,channel-discord,channel-email,channel-filesystem,channel-git,channel-lark,channel-matrix,channel-telegram,channel-webhook,channel-qq,gateway,observability-prometheus,plugins-wasm-cranelift,schema-export,tool-claude-code,tool-claude-code-runner,tool-codex-cli,tool-composio,tool-gemini-cli,tool-google-workspace,tool-jira,tool-linkedin,tool-microsoft365,tool-notion,tool-opencode-cli,tool-project-intel,tools-external,whatsapp-web
+          set -euo pipefail
+          echo "features: $FEATURES"
+          time cargo build --release --locked -p zeroclaw \
+            --no-default-features --features "$FEATURES"
 
       - name: Report compiler channels
         run: |
